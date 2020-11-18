@@ -1,4 +1,3 @@
-# install.packages("devtools")
 #devtools::install_github("jreduardo/cmpreg")
 #devtools::install_github("cran/compoisson") # archive version - package no longer on CRAN
 rm(list = ls())
@@ -9,7 +8,10 @@ library(scales) # alpha
 #library(compoisson) 
 library(glmmTMB)
 #library(cmpreg)
-# try mpcmp: Mean-Parametrized Conway-Maxwell Poisson (COM-Poisson) Regression?
+# Other options:
+#   try mpcmp: Mean-Parametrized Conway-Maxwell Poisson (COM-Poisson) Regression?
+#   There’s an experimental CMP in brms (a Stan frontend) https://github.com/paul-buerkner/brms/issues/607
+
 
 # Z function
 Z <- function(lambda, nu, stop.at = 100) {
@@ -75,7 +77,7 @@ nu(fit.cmp)
 predict(fit.cmp) # uses eqn 7 (bad) approximation in Lynch et al.
 
 # What does the Poisson GLM make of the underdispersed counts?
-fit.pois.cmp <- glm(y.cmp ~ x, family = poisson)
+fit.pois.cmp <- glm(y.cmp[x == "1"] ~ 1, family = poisson)
 summary(fit.pois.cmp)
 
 # Simulate from the CMP GLM
@@ -103,5 +105,6 @@ system.time(
 summary(fit.tmb) # no sig. diff. in conditional model - differs from glm.cmp - why?
 exp(fixef(fit.tmb)$cond) # gives mean and multiplicative x effect
 exp(fixef(fit.tmb)$disp) # I haven't worked out the parameterisation for glmmTMB
+
 
 
