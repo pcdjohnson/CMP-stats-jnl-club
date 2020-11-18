@@ -9,7 +9,7 @@ library(scales) # alpha
 #library(compoisson) 
 library(glmmTMB)
 #library(cmpreg)
-
+# try mpcmp: Mean-Parametrized Conway-Maxwell Poisson (COM-Poisson) Regression?
 
 # Z function
 Z <- function(lambda, nu, stop.at = 100) {
