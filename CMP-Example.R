@@ -77,7 +77,7 @@ nu(fit.cmp)
 predict(fit.cmp) # uses eqn 7 (bad) approximation in Lynch et al.
 
 # What does the Poisson GLM make of the underdispersed counts?
-fit.pois.cmp <- glm(y.cmp[x == "1"] ~ 1, family = poisson)
+fit.pois.cmp <- glm(y.cmp ~ x, family = poisson)
 summary(fit.pois.cmp)
 
 # Simulate from the CMP GLM
