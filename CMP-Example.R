@@ -1,6 +1,6 @@
 # install.packages("devtools")
 #devtools::install_github("jreduardo/cmpreg")
-#devtools::install_github("cran/compoisson")
+#devtools::install_github("cran/compoisson") # archive version - package no longer on CRAN
 rm(list = ls())
 library(COMPoissonReg) # glm.cmp
 library(degreenet) # simcmp
