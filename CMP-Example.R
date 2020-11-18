@@ -7,7 +7,7 @@ library(degreenet) # simcmp
 library(MASS) # glm.nb
 library(scales) # alpha
 #library(compoisson) 
-#library(glmmTMB)
+library(glmmTMB)
 #library(cmpreg)
 
 
@@ -66,16 +66,6 @@ tapply(y.cmp, x, mean)
 tapply(y.cmp, x, var)
 tapply(y.cmp, x, sd)
 
-# takes minutes/hours, don't bother
-#fit <- glmmTMB(y ~ 1, family = "compois")
-#summary(fit)
-#exp(fixef(fit)$cond)
-#sigma(fit)
-
-
-
-# - ((1)/(2) + (  1)/(2 * nu.hat))
-# - 1/2 + 1/2*nu
 
 # Fit CMP GLM
 fit.cmp <- glm.cmp(y.cmp ~ x, formula.nu = ~ x)
@@ -103,5 +93,15 @@ legend("topleft",
 stripchart(y.sim.pois.cmp ~ x, vertical = TRUE, method = "jitter", col = col, pch = 16,
            main = "What the data look like\nto a Poisson GLM")
 legend("topright", legend = paste0("P=", round(coef(summary(fit.pois.cmp))["x2", "Pr(>|z|)"], 3)))
+
+
+# Try glmmTMB (I didn't explore this option much as for some 
+# data sets it took 10+ min)
+system.time(
+  fit.tmb <- glmmTMB(y.cmp ~ x, dispformula = ~ x, family = "compois")
+)
+summary(fit.tmb) # no sig. diff. in conditional model - differs from glm.cmp - why?
+exp(fixef(fit.tmb)$cond) # gives mean and multiplicative x effect
+exp(fixef(fit.tmb)$disp) # I haven't worked out the parameterisation for glmmTMB
 
 
