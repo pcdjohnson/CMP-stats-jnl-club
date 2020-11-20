@@ -13,18 +13,6 @@ library(glmmTMB)
 #   There’s an experimental CMP in brms (a Stan frontend) https://github.com/paul-buerkner/brms/issues/607
 
 
-# Z function
-Z <- function(lambda, nu, stop.at = 100) {
-  i <- 0:stop.at
-  sum(lambda^i / (factorial(i)^nu))
-}
-
-Z(lambda = 1, nu = 1, stop.at = 5)
-Z(lambda = 1, nu = 1, stop.at = 10)
-Z(lambda = 1, nu = 1, stop.at = 100)
-Z(1, 1)
-exp(1)
-
 
 # Counts in biology are often overdispersed so a poisson GLM is a poor default 
 
@@ -34,13 +22,24 @@ x <- gl(2, n/2)
 set.seed(8723645)
 y.nb <- rnbinom(n, mu = 5, size = 0.1)
 
+# Fit the Poisson GLM
+fit.pois.nb <- glm(y.nb ~ x, family = poisson)
+summary(fit.pois.nb)
+
+# The standard approach here is to test for overdispersion 
+# by comparing the residual deviance with the residual d.f.
+# If the residual deviance is much larger, then overdispersion is present
+# and the usual next step is to fit a negative binomial
+deviance(fit.pois.nb)
+df.residual(fit.pois.nb)
+# Clearly overdispersed. Testing the null hypothesis confirms this: 
+pchisq(deviance(fit.pois.nb), df.residual(fit.pois.nb), lower.tail = FALSE)
+
+
 # Fit the neg binom GLM
 fit.nb <- glm.nb(y.nb ~ x)
 summary(fit.nb)
 
-# Fit the Poisson GLM
-fit.pois.nb <- glm(y.nb ~ x, family = poisson)
-summary(fit.pois.nb)
 
 # Simulate from the Poisson GLM
 y.sim.pois.nb <- simulate(fit.pois.nb)[[1]]
@@ -56,6 +55,9 @@ stripchart(y.sim.pois.nb ~ x, vertical = TRUE, method = "jitter",
            main = "What the data look like\nto a Poisson GLM",
            pch = 16, col = col)
 legend("topright", legend = paste0("P=", round(coef(summary(fit.pois.nb))["x2", "Pr(>|z|)"], 3)))
+
+
+# What about underdispersion?
 
 
 # Simulate underdispersed data where both the mean and dispersion differ between groups
@@ -80,7 +82,18 @@ predict(fit.cmp) # uses eqn 7 (bad) approximation in Lynch et al.
 fit.pois.cmp <- glm(y.cmp ~ x, family = poisson)
 summary(fit.pois.cmp)
 
-# Simulate from the CMP GLM
+# As above, compare residual deviance to  residual d.f. 
+deviance(fit.pois.cmp)
+df.residual(fit.pois.cmp)
+# Looks underdispersed. Test the null hypothesis: 
+pchisq(deviance(fit.pois.cmp), df.residual(fit.pois.cmp), lower.tail = FALSE)
+# Strictly this is a test that shows no evidence for overdispersion, but
+# here the chi-squared stat is so far into the lower tail that perhaps this could 
+# work as a two-tailed test for underdispersion? I.e. the null hypothesis is 
+# equidispersion, and extreme values in either tail would reject it.
+
+
+# Simulate from the Poisson GLM fit of the CMP-simulated data
 y.sim.pois.cmp <- simulate(fit.pois.cmp)[[1]]
 
 # Show how the Poisson GLM overestimates the amount of noise
@@ -106,5 +119,15 @@ summary(fit.tmb) # no sig. diff. in conditional model - differs from glm.cmp - w
 exp(fixef(fit.tmb)$cond) # gives mean and multiplicative x effect
 exp(fixef(fit.tmb)$disp) # I haven't worked out the parameterisation for glmmTMB
 
+# Illustrate Z function
+Z <- function(lambda, nu, stop.at = 100) {
+  i <- 0:stop.at
+  sum(lambda^i / (factorial(i)^nu))
+}
 
+Z(lambda = 1, nu = 1, stop.at = 5)
+Z(lambda = 1, nu = 1, stop.at = 10)
+Z(lambda = 1, nu = 1, stop.at = 100)
+Z(1, 1)
+exp(1)
 
